@@ -2,8 +2,8 @@
 
 ### Install requirements.txt
 
-pip3 install -r requirements.txt
+`pip3 install -r requirements.txt`
 
 ### Run File
 
-python3 app.py
+`python3 app.py`
