@@ -236,8 +236,8 @@
           var fps = count / ((new Date() - start_time) / 1000)
          // console.log('fps', fps, 'area', data['result']['area'])
           $("#idSelfieFrame").attr("src", "data:image/jpeg;base64," + data['img_frame']);
-          console.log(data['data'][0])
-          console.log(data['data'][1])
+          //console.log(data['data'][0])
+          //console.log(data['data'][1])
           _wmc = (+data['wmc']);
           _womc = (+data['womc']);
           _PreviousCount = _wmc + _womc;

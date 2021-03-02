@@ -24,6 +24,7 @@ def gen(camera):
 
 def background_vid_broadcast(camera=Camera()):
 	while True:
+		socketio.sleep(0.1)
 		frame, data = camera.get_frame()
 		jpg_as_text = base64.b64encode(frame).decode('ascii')
 		socketio.emit(
@@ -53,9 +54,9 @@ def test_connect():
 def handle_message(message):
 	print('received message: ' + str(message))
 
-@app.route('/video_feed')
-def video_feed():
-	return Response(gen(Camera()), mimetype='multipart/x-mixed-replace; boundary=frame')
+# @app.route('/video_feed')
+# def video_feed():
+# 	return Response(gen(Camera()), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 if __name__ == "__main__":
