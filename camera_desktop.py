@@ -90,6 +90,15 @@ class Camera(BaseCamera):
                 faces = np.array(faces, dtype="float32")
                 preds = maskNet.predict(faces, batch_size=32)
 
+                temp_list = []
+                for i, (box, pred) in enumerate(zip(locs, preds)):
+                    # unpack the bounding box and predictions
+                    (startX, startY, endX, endY) = box
+                    (mask, withoutMask) = pred
+                    temp_list.append([i,abs(endY-startY)])
+                top_index_to_pick = sorted(temp_list, key=lambda x:x[1], reverse=True)[0][0]
+                locs = [locs[top_index_to_pick]]
+                preds = [preds[top_index_to_pick]]
             # return a 2-tuple of the face locations and their corresponding
             # locations
             return (locs, preds)
@@ -132,4 +141,6 @@ class Camera(BaseCamera):
 
                 # convert image to jpg format
             ret, jpeg = cv2.imencode('.jpg', frame)
-            yield jpeg.tobytes()
+            data = [['mask' if mask > withoutMask else 'nomask' for (mask, withoutMask) in preds], np.array(preds, dtype=np.int32).tolist()]
+
+            yield jpeg, data

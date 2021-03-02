@@ -1,48 +1,530 @@
 <!DOCTYPE html>
-<html>
-	<style>
-		@font-face {
-		    font-family: roboto;
-		    src: url({{ url_for('static', filename='fonts/roboto/Roboto-Regular.woff') }});
-		}
+<html lang="en">
 
-		body {
-			font-family: roboto;
-		}
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
+    <link rel="icon" href="../static/images/fav.ico">
+    <!-- Socket IO
+      ================================================== -->
+      <link rel="stylesheet" href="../static/content/css/bootstrap.min.css">
+      <link rel="stylesheet" href="../static/content/css/bootstrap-toggle.min.css">
+      <script src="../static/content/js/jquery-min.js"></script>
+      <script src="../static/content/js/bootstrap.min.js"></script>
+      <script src="../static/content/js/bootstrap-toggle.min.js"></script>
+      <script src="../static/content/js/socket.js"></script>
+      <script src="../static/content/js/simpleheat.js?v=1.1"></script>
+      <script src="../static/content/js/data.js"></script>
+      <script type="text/javascript" charset="utf-8">
+    function fnLoadVisitor()
+    {
+      window.href="../comment";
+    }
+    function sendReport() {
 
-		img {
-			max-width: 100%;
-			max-height: 100vh;
-			height: auto;
-		}
+      $.ajax({
+        url: "../sendus_report",
+        type: "post",
+        //data: values ,
+        success: function (response) {
+          alert("Email sent successfully!!")
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          console.log(textStatus, errorThrown);
+        }
+      });
+    }
 
-		.screen {
-			background: #ff6860;
-			border: 1px solid #474e5d;
-			border-radius: 1px;
-			overflow: hidden;
-		}
-	</style>
-	
-	<head>
-		<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-		<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/materialize.min.css') }}"  media="screen,projection"/>
-		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.3.1.min.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.finger.min.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
-		<title>RemotePy Desktop</title>
-	</head>
-	
-	<body>
-		<h1><center>Face Mask Detection App</center></h1>
+    //setInterval(function(){ location.reload(true); }, 200000);
+    var _playOnDemandAudio = false;
+    var _PlayingHighTempAudio=false;
+    function playZaffiAudio(_val) {
 
-		<div class="row">
-			<div class="col s12">
-				<img class="screen" id="screen" src="{{ url_for('video_feed') }}">	
-			</div>
-		</div>
+      var myAudio = _val === 1 ? $("#idWelcomeAudio") : _val === 2 ? $("#idNoMaskAudio") : _val === 3 ? $("#idBodyTempAudio") : $("#idOnDemandAudio");
+      var _IsPlayed = false;
+      $(".my_audio").each(function () {
 
-	</body>
-	
-	
+        if ((!$(this).get(0).ended && !$(this).get(0).paused)) {
+
+
+          if($(this).get(0).id=="idBodyTempAudio")
+          {
+            _PlayingHighTempAudio=true;
+          }
+          _IsPlayed = true;
+          return false;
+        }
+        else {
+          _PlayingHighTempAudio=false;
+          _IsPlayed = false;
+        }
+      });
+      //console.log("temp playing status temp Audio :" + _PlayingHighTempAudio);
+      if(!_PlayingHighTempAudio)
+      {
+        //console.log("not playing high temp Audio");
+        if (_val !== 0){
+          $("#idOnDemandAudio").get(0).pause();
+          $(".my_audio").each(function () {
+            if ((!$(this).get(0).ended && !$(this).get(0).paused)) {
+              $(this).get(0).pause();
+              $(this).get(0).currentTime = 0;
+              return false;
+            }
+            // else{
+            //     _IsPlayed=false;
+            // }
+          });
+          // if(!_IsPlayed)
+          // {
+          // $(".my_audio").trigger('pause');
+          // $(".my_audio").prop("currentTime", 0);
+          //_IsPlayed=true;
+          // $("#idOnDemandAudio").get(0).pause();
+          // $("#idOnDemandAudio").get(0).currentTime = 0;
+          myAudio.get(0).play();
+          // }
+        }
+        else {
+          if (_playOnDemandAudio == true && !_IsPlayed) {
+            //if(!$("#idOnDemandAudio").get(0).ended && !$("#idOnDemandAudio").get(0).paused) {
+            $("#idOnDemandAudio").get(0).play();
+            //}
+          }
+          else {
+            $("#idOnDemandAudio").get(0).pause();
+          }
+        }
+      }
+    }
+
+    function UpdateTime() {
+      var datetimenow = new Date();
+      var dataObject = {
+        newdatetime: datetimenow
+      }
+      console.log(datetimenow);
+      $.ajax({
+        url: "../update_time",
+        type: "POST",
+        data: dataObject,
+        dataType: "json",
+        success: function (response) {
+          if (response.status) {
+            //alert("Time Updated successfully!!")
+          }
+
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          console.log(textStatus, errorThrown);
+        }
+      });
+    }
+    $(document).ready(function () {
+      UpdateTime();
+      $('#btnPlayOnDemand').change(function () {
+        if ($(this).prop('checked')) {
+          _playOnDemandAudio = true;
+        }
+        else {
+          _playOnDemandAudio = false;
+        }
+      });
+
+      if ($('#btnPlayOnDemand').prop('checked')) {
+        _playOnDemandAudio = true;
+        playZaffiAudio(0);
+      }
+      var _width = $("#idcanvas").width();
+      $("#canvas").attr("width", _width);
+
+      window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+        window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+
+      function get(id) {
+        return document.getElementById(id);
+      }
+
+      var heat = simpleheat('canvas').data(data).max(18),
+        frame;
+
+      function draw() {
+        //console.time('draw');
+        heat.draw();
+        //console.timeEnd('draw');
+        frame = null;
+      }
+
+      function generateRandomInteger(min, max) {
+        return Math.floor(min + Math.random() * (max + 1 - min))
+      }
+
+      get('canvas').onmousemove = function (e) {
+        heat.add([432, 690, 1]);
+        frame = frame || window.requestAnimationFrame(draw);
+      };
+      var count = 0
+      var start_time = 0
+      console.log('socket loading')
+      var socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
+      //console.log(socket)
+      socket.on('connect', function () {
+        console.log('emtting connect')
+        socket.emit('test_event', { data: 'I\'m connected!' });
+        console.log('emitting start_stream')
+        socket.emit('start_stream', { 'data': 'start_streaming' });
+        socket.emit('start_temperature_stream', { 'data': 'start_temp_stream' })
+      });
+
+      socket.on('temperature_feed', function (data, cb) {
+        if (data["isThermalSensorFailed"] == "1") {
+          $("#idHardwareFailure").html("Thermal sensor failed. Restart the Robot & Tab. If Problem persists, contact Zaffi Robots!!");
+          $("#iderrordiv").show();
+          socket.removeAllListeners("temperature_feed");
+          tempCount=0;
+        }
+        else {
+          var Temperature = data["Temperature"];
+          var PrevTemp=data["previous_temp_value"];
+          console.log("prev Temp:"+PrevTemp)
+          if (+Temperature > 37) {
+            playZaffiAudio(3);
+          }
+          $("#idTemprature").html("Temperature: " + PrevTemp.toFixed(2) + " C");
+          var randRadius = generateRandomInteger(15, 20);
+          var randBlur = generateRandomInteger(10, 20);
+          heat.radius(randRadius, randBlur);
+        }
+      });
+      var IsFailedCameraMessagedShowed = 0;
+      var _PrevTotal = 0;
+      var _Prev_wmc = 0;
+      var _Prev_womc = 0;
+      var _wmc = 0;
+      var _womc = 0;
+      var _PreviousCount = 0;
+      var TotalPeople = 0;
+      socket.on('video_feed', function (data, cb) {
+      console.log(data)
+        _PrevTotal = 0;
+        _Prev_wmc = 0;
+        _Prev_womc = 0;
+        _wmc = 0;
+        _womc = 0;
+        _PreviousCount = 0;
+        TotalPeople = 0;
+        if (data["isCameraFailed"] == 1) {
+
+          if (IsFailedCameraMessagedShowed == 0) {
+            IsFailedCameraMessagedShowed = 1;
+            var existsError = $("#idHardwareFailure").html() + "<br/>";
+            $("#idHardwareFailure").html(existsError + "Camera Failed to Load. Restart the Robot & Tab. If Problem persists, contact Zaffi Robots!!");
+            $("#iderrordiv").show();
+            socket.removeAllListeners("video_feed");
+            //alert("Camera Failed to Load. Restart the Robot & Tab. If Problem persists, contact Zaffi Robots!!");
+          }
+        }
+        else {
+          count += 1;
+          if (start_time == 0) {
+            start_time = new Date();
+          }
+          var fps = count / ((new Date() - start_time) / 1000)
+         // console.log('fps', fps, 'area', data['result']['area'])
+          $("#idSelfieFrame").attr("src", "data:image/jpeg;base64," + data['img_frame']);
+          console.log(data['data'][0])
+          console.log(data['data'][1])
+          _wmc = (+data['wmc']);
+          _womc = (+data['womc']);
+          _PreviousCount = _wmc + _womc;
+          //console.log("prev mask" + _wmc);
+          //console.log("prev wit" + _womc);
+          // TotalPeople = (data['result']['mask_count']) + (data['result']['no_mask_count']);//(_PreviousCount);
+          //console.log(data['result']['mask_count']);
+          //console.log(data['result']['no_mask_count']);
+          //console.log(_Prev_wmc + "prev with mask " + _wmc);
+          //console.log(_Prev_womc + "prev No with mask " + _womc);
+          //if (_Prev_wmc < _wmc || _Prev_womc < _womc)
+          //{
+          // _Prev_wmc=_wmc;
+          //  _Prev_womc=_womc;
+          // $('#idtotalcount').html(TotalPeople);
+          // $("#idmaskcount").html(data['result']['mask_count']);
+          // $("#idnomaskcount").html(data['result']['no_mask_count']);
+          //}
+
+          if (data['mask_action']) {
+            playZaffiAudio(1);
+          }
+          else if (data['no_mask_action']) {
+            playZaffiAudio(2);
+          }
+          else {
+            playZaffiAudio(0);
+          }
+
+          frame = frame || window.requestAnimationFrame(draw);
+          // $('#fps').text('FPS - ' + fps)
+          if (cb) { cb(); }
+        }
+      });
+    });
+  </script>
+  <style>
+    body {
+      background-color: #9e9fa3!important;
+    }
+
+    .bg-1 {
+    background-color: #9e9fa3 ;
+    color: #000;
+}
+    .bg-3 {
+      background-color: #b24098;
+      /* Green */
+      color: #ffffff;
+    }
+    .header-content {
+      /* background-image: url(../static/images/header_bg.png); */
+      background-size: contain;
+      height: 80px;
+      /* background-color: #fff !important; */
+      text-align: center;
+    }
+
+    .textlabelbg {
+      background-color: #eee;
+      font-size: medium;
+      color: darkslategray;
+      height: 25px;
+    }
+
+    .withmask {
+      background-color: #4caf50;
+      font-size: 28px;
+      color: black;
+    }
+
+    .withoutmask {
+      background-color: #ff9800;
+      font-size: 28px;
+      color: black;
+    }
+
+    .totalPeople {
+      background-color: #546a73c9;
+      font-size: 28px;
+      color: black;
+    }
+
+    .totalbg {
+      background-color: #92a6afd1;
+      font-size: x-large;
+      color: black;
+      min-height: 50px;
+    }
+
+    .footerbg {
+
+      text-align: center;
+      height: 85px;
+      position: absolute;
+      bottom: 2px;
+      width: 100%;
+      padding-top: 6px;
+    }
+
+    .tempbg {
+      background-color: #ff5722 !important;
+      color: silver;
+      position: absolute;
+      bottom: 1px;
+      width: 450px;
+      height: 47px;
+      text-align: left;
+      font-size: 23pt;
+      float: right;
+      right: 14px;
+    }
+
+    p {
+      margin: 0 0 -3px !important;
+    }
+    .register {
+  background-color: #004A7F;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  border: none;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Arial;
+
+  text-align: center;
+  text-decoration: none;
+  -webkit-animation: glowing 1500ms infinite;
+  -moz-animation: glowing 1500ms infinite;
+  -o-animation: glowing 1500ms infinite;
+  animation: glowing 1500ms infinite;
+}
+@-webkit-keyframes glowing {
+  0% { background-color: #B20000; -webkit-box-shadow: 0 0 3px #B20000; }
+  50% { background-color: #FF0000; -webkit-box-shadow: 0 0 40px #FF0000; }
+  100% { background-color: #B20000; -webkit-box-shadow: 0 0 3px #B20000; }
+}
+
+@-moz-keyframes glowing {
+  0% { background-color: #B20000; -moz-box-shadow: 0 0 3px #B20000; }
+  50% { background-color: #FF0000; -moz-box-shadow: 0 0 40px #FF0000; }
+  100% { background-color: #B20000; -moz-box-shadow: 0 0 3px #B20000; }
+}
+
+@-o-keyframes glowing {
+  0% { background-color: #B20000; box-shadow: 0 0 3px #B20000; }
+  50% { background-color: #FF0000; box-shadow: 0 0 40px #FF0000; }
+  100% { background-color: #B20000; box-shadow: 0 0 3px #B20000; }
+}
+
+@keyframes glowing {
+  0% { background-color: #B20000; box-shadow: 0 0 3px #B20000; }
+  50% { background-color: #FF0000; box-shadow: 0 0 40px #FF0000; }
+  100% { background-color: #B20000; box-shadow: 0 0 3px #B20000; }
+}
+  </style>
+  <title>Zaffi</title>
+</head>
+
+<body>
+
+  <audio id="idOnDemandAudio">
+    <source src="../static/audios/OnDemand.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="idWelcomeAudio" class="my_audio">
+    <source src="../static/audios/Default.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="idBodyTempAudio" class="my_audio">
+    <source src="../static/audios/Temperature.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="idNoMaskAudio" class="my_audio">
+    <source src="../static/audios/NoMask.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="container-fluid">
+    <div class="container-fluid bg-1 header-content">
+      <div class="row">
+        <div class="col-md-12 col-sm-12">
+          <div class="pull-left">
+            <div class="row text-center">
+              <img src="../static/images/ZaraRobotLogo.png" style="padding-bottom:3px" height="40px" width="300px">
+              <h5>i'm here to protect you from covid spread</h5>
+            </div>
+          </div>
+          <div class="pull-right">
+            <input type="checkbox" id="btnPlayOnDemand" name="btnPlayOnDemand" data-toggle="toggle"
+              data-onstyle="danger" data-offstyle="success" data-on="Off Audio" data-off="On Audio">
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-body bg-3">
+      <div class="row" id="iderrordiv" style="display: none;">
+        <div class="alert alert-danger">
+          <strong id="idHardwareFailure"></strong>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-9 col-sm-9">
+          <div class="row  bg-3">
+            <div class="col-md-12 col-sm-12">
+              <img id="idSelfieFrame" src="../static/images//mask.jpg" height="380px" width="100%">
+              <div class="tempbg">
+                <div class="col-md-11 col-sm-11">
+                  <p id="idTemprature"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row  bg-3">
+            <div class="col-md-12 col-sm-12">
+              <div class="col-md-4 col-sm-4">
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 text-center textlabelbg">
+                    <p>With Mask</p>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 text-center withmask">
+                    <p id="idmaskcount">0</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4 col-sm-4">
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 text-center textlabelbg">
+                    <p>Without Mask</p>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 text-center align-items-center align-middle withoutmask">
+                    <p id="idnomaskcount">0</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4 col-sm-4">
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 text-center textlabelbg">
+                    <p>Total People</p>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 text-center align-items-center align-middle totalPeople">
+                    <p id="idtotalcount">0</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- <div class="row text-center totalbg">
+            <p> Total People: <span style="font-size: 40px;" id="idtotalcount"></span></p>
+          </div> -->
+        </div>
+        <div class="col-md-3 col-sm-3" style="padding: 5px 20px 10px 10px;">
+          <!-- <div class="row text-center">
+            <img src="../static/images//ZaffiLogo.png" style="padding-bottom:3px">
+          </div> -->
+          <div>
+          <img style="max-height: 200px;width: 250px !important;" src="../static/images/SwathiEnglish.jpg">
+
+          <br/>
+          </br>
+          <!-- <img style="max-height: 200px;width: 250px !important;" src="../static/images/CrescentCollege.jpg"><br><br><br><br><br> -->
+            <div style="max-height: 250px;width: 250px !important;background-color: #fff !important;" id="idcanvas">
+              <canvas id="canvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="footerbg">
+    <div class="row text-center" style="background-color:#fff;">
+      <img src="../static/images/zafiraLogo1.jpg?v=1" style="padding-bottom:3px" height="45px" width="180px">
+    </div>
+    <div class="row" style="background-color: #3e6281 !important;">
+      <p style="color:red !important;height: 40px;">Powered by :
+        <a href="#" target="_blank">
+          <img style="max-height: 24px" src="../static/images//logo-redmind.png" alt="PG">
+        </a>
+      </p>
+    </div>
+
+  </footer>
+</body>
+
 </html>
