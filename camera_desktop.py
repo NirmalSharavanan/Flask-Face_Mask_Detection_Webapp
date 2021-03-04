@@ -90,15 +90,7 @@ class Camera(BaseCamera):
                 faces = np.array(faces, dtype="float32")
                 preds = maskNet.predict(faces, batch_size=32)
 
-                temp_list = []
-                for i, (box, pred) in enumerate(zip(locs, preds)):
-                    # unpack the bounding box and predictions
-                    (startX, startY, endX, endY) = box
-                    (mask, withoutMask) = pred
-                    temp_list.append([i,abs(endY-startY)])
-                top_index_to_pick = sorted(temp_list, key=lambda x:x[1], reverse=True)[0][0]
-                locs = [locs[top_index_to_pick]]
-                preds = [preds[top_index_to_pick]]
+
             # return a 2-tuple of the face locations and their corresponding
             # locations
             return (locs, preds)
@@ -120,11 +112,13 @@ class Camera(BaseCamera):
 
             # loop over the detected face locations and their corresponding
             # locations
-            for (box, pred) in zip(locs, preds):
+            temp_list = []
+            for i, (box, pred) in enumerate(zip(locs, preds)):
                 # unpack the bounding box and predictions
                 (startX, startY, endX, endY) = box
                 (mask, withoutMask) = pred
 
+                temp_list.append([i, abs(endY - startY)])
                 # determine the class label and color we'll use to draw
                 # the bounding box and text
                 label = "Mask" if mask > withoutMask else "No Mask"
@@ -139,8 +133,12 @@ class Camera(BaseCamera):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
                 cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
 
-                # convert image to jpg format
+            result = None
+            if temp_list:
+                top_index_to_pick = sorted(temp_list, key=lambda x: x[1], reverse=True)[0][0]
+                mask, withoutMask = preds[top_index_to_pick]
+                result = 'mask' if mask > withoutMask else 'nomask'
+            # convert image to jpg format
             ret, jpeg = cv2.imencode('.jpg', frame)
-            data = [['mask' if mask > withoutMask else 'nomask' for (mask, withoutMask) in preds], np.array(preds, dtype=np.int32).tolist()]
 
-            yield jpeg, data
+            yield jpeg, result
