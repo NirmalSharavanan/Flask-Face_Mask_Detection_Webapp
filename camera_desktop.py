@@ -137,11 +137,12 @@ class Camera(BaseCamera):
                 cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
 
             result = None
+            max_height = 0
             if temp_list:
-                top_index_to_pick = sorted(temp_list, key=lambda x: x[1], reverse=True)[0][0]
-                mask, withoutMask = preds[top_index_to_pick]
+                sorted_temp_list = sorted(temp_list, key=lambda x: x[1], reverse=True)[0]
+                mask, withoutMask = preds[sorted_temp_list[0]]
+                max_height = sorted_temp_list[1]
                 result = 'mask' if mask > withoutMask else 'nomask'
             # convert image to jpg format
             ret, jpeg = cv2.imencode('.jpg', frame)
-
-            yield jpeg, result
+            yield jpeg, [result, str(max_height)]
