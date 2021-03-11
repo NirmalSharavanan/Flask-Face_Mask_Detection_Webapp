@@ -8,6 +8,7 @@ from imutils.video import VideoStream
 import numpy as np
 import argparse
 import imutils
+from mask_detection import *
 import time
 import cv2
 import os
@@ -72,6 +73,7 @@ class Camera(BaseCamera):
                     # extract the face ROI, convert it from BGR to RGB channel
                     # ordering, resize it to 224x224, and preprocess it
                     face = frame[startY:endY, startX:endX]
+                    preds.append((detect_face_mask(face)))
                     face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
                     face = cv2.resize(face, (224, 224))
                     face = img_to_array(face)
@@ -83,12 +85,12 @@ class Camera(BaseCamera):
                     locs.append((startX, startY, endX, endY))
 
             # only make a predictions if at least one face was detected
-            if len(faces) > 0:
-                # for faster inference we'll make batch predictions on *all*
-                # faces at the same time rather than one-by-one predictions
-                # in the above `for` loop
-                faces = np.array(faces, dtype="float32")
-                preds = maskNet.predict(faces, batch_size=32)
+            # if len(faces) > 0:
+            #     # for faster inference we'll make batch predictions on *all*
+            #     # faces at the same time rather than one-by-one predictions
+            #     # in the above `for` loop
+            #     faces = np.array(faces, dtype="float32")
+            #     preds = maskNet.predict(faces, batch_size=32)
 
 
             # return a 2-tuple of the face locations and their corresponding
