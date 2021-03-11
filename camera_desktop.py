@@ -82,7 +82,8 @@ class Camera(BaseCamera):
                     # add the face and bounding boxes to their respective
                     # lists
                     faces.append(face)
-                    locs.append((startX, startY, endX, endY))
+                    if abs(endY-startY) > 40:
+                        locs.append((startX, startY, endX, endY))
 
             # only make a predictions if at least one face was detected
             # if len(faces) > 0:
