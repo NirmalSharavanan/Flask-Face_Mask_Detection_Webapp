@@ -116,6 +116,7 @@ class Camera(BaseCamera):
             # loop over the detected face locations and their corresponding
             # locations
             temp_list = []
+            mask_thres = 0.91
             for i, (box, pred) in enumerate(zip(locs, preds)):
                 # unpack the bounding box and predictions
                 (startX, startY, endX, endY) = box
@@ -124,11 +125,11 @@ class Camera(BaseCamera):
                 temp_list.append([i, abs(endY - startY)])
                 # determine the class label and color we'll use to draw
                 # the bounding box and text
-                label = "Mask" if mask > withoutMask else "No Mask"
+                label = "Mask" if mask > mask_thres else "No Mask"
                 color = (0, 255, 0) if label == "Mask" else (0, 0, 255)
 
                 # include the probability in the label
-                label = "{}: {:.2f}%".format(label, max(mask, withoutMask) * 100)
+                label = "{}: {:.2f}%".format(label, mask * 100)
 
                 # display the label and bounding box rectangle on the output
                 # frame
@@ -145,7 +146,7 @@ class Camera(BaseCamera):
                 if max_height>120 and tempHeight!=max_height:
                     tempHeight=max_height
                     print(max_height)
-                    result = 'mask' if mask > withoutMask else 'nomask'
+                    result = 'mask' if mask > mask_thres else 'nomask'
             # convert image to jpg format
             ret, jpeg = cv2.imencode('.jpg', frame)
             yield jpeg, [result, str(max_height)]
