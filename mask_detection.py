@@ -47,15 +47,13 @@ num_classes = 2
 #   when True we only update the reshaped layer params
 feature_extract = False
 
-device = torch.device("cuda:0" if True else "cpu")
+device = torch.device("cuda:0" if False else "cpu")
 
 model_ft, input_size = initialize_model(num_classes, feature_extract, use_pretrained=True)
 model_ft.eval()
 model_ft.to(device)
-
 model_ft.load_state_dict(torch.load(
-    './best.pt')[
-                             'model_state_dict'])
+    './best.pt',map_location=torch.device("cpu"))['model_state_dict'])
 
 data_transform = transforms.Compose([
     transforms.Resize(input_size),

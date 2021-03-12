@@ -101,7 +101,7 @@ class Camera(BaseCamera):
 
     @staticmethod
     def frames():    
-
+        tempHeight=0
         # loop over the frames from the video stream
         while True:
             # grab the frame from the threaded video stream and resize it
@@ -142,7 +142,10 @@ class Camera(BaseCamera):
                 sorted_temp_list = sorted(temp_list, key=lambda x: x[1], reverse=True)[0]
                 mask, withoutMask = preds[sorted_temp_list[0]]
                 max_height = sorted_temp_list[1]
-                result = 'mask' if mask > withoutMask else 'nomask'
+                if max_height>120 and tempHeight!=max_height:
+                    tempHeight=max_height
+                    print(max_height)
+                    result = 'mask' if mask > withoutMask else 'nomask'
             # convert image to jpg format
             ret, jpeg = cv2.imencode('.jpg', frame)
             yield jpeg, [result, str(max_height)]
